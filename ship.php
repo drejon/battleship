@@ -1,7 +1,7 @@
-<?php 
+<?php
 
     class Ship {
-        
+
         public $destroyed = false;
 
         function __construct($name, $length) {
