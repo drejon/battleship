@@ -8,6 +8,7 @@ class Board {
     const COLUMNS = 7;
     const ROWS = self::COLUMNS - 2;
     public $tiles = [];
+    public $ship_placed = 0;
 
     function __construct() {
         for ($column=0; $column < self::COLUMNS; $column++) {
@@ -38,21 +39,11 @@ class Board {
         return $this->tiles[$position[0]][$position[1]] = $ship;
     }
 
-    function is_position_valid($position, $ship) {
-        // Look right
-        if ($position[0] + $ship->length <= self::COLUMNS && $ship->orientation == 'horizontal') {
-
-            $tiles_avaliable = 0;
-            for ($column = $position[0]; $column <= ($position[0] + $ship->length - 1); $column++) { 
-                $tile_content = $this->get_tile([$column, $position[1]]);
-                if ($tile_content == '[ ]') {$tiles_avaliable++;}
-            }
+    function check_vertical($position, $ship) {
         
-            if ($tiles_avaliable == $ship->length) {return true;}
-        } else return false;
-        // Look Down
-        if ($position[1] + $ship->length <= self::ROWS && $ship->orientation == 'vertical') {
+        $vertical = $position[1] + $ship->length <= self::ROWS;
 
+        if ($vertical) {
             $tiles_avaliable = 0;
             for ($row = $position[1]; $row <= ($position[1] + $ship->length - 1); $row++) { 
                 $tile_content = $this->get_tile([$position[0], $row]);
@@ -60,8 +51,42 @@ class Board {
             }
 
             if ($tiles_avaliable == $ship->length) {return true;}
+        } return false;
+    }
 
-        } else return false;
+    function check_horizontal($position, Ship $ship) {
+        
+        $horizontal = $position[0] + $ship->length <= self::COLUMNS;
+
+        if ($horizontal) {
+
+            $tiles_avaliable = 0;
+            for ($column = $position[0]; $column <= ($position[0] + $ship->length - 1); $column++) { 
+                $tile_content = $this->get_tile([$column, $position[1]]);
+                if ($tile_content == '[ ]') {$tiles_avaliable++;}
+            }
+            
+            if ($tiles_avaliable == $ship->length) {return true;}
+        } return false;
+    }
+
+    function is_position_valid($position, $ship) {
+
+        $horizontal = $this->check_horizontal($position, $ship);
+        $vertical = $this->check_vertical($position, $ship);
+
+        if ($horizontal && $vertical) {
+            $orientations = ['vertical', 'horizontal'];
+            $orientation = rand(0, 1);
+
+            $ship->orientation = $orientations[$orientation];
+            return true;
+        }
+
+        if ($horizontal) {$ship->orientation = 'horizontal'; return true;}
+        if ($vertical) {$ship->orientation = 'vertical'; return true;}
+
+        return false;
     }
 
     public function place_ship($position, $ship) {
@@ -71,15 +96,14 @@ class Board {
                 for ($column = $position[0]; $column <= ($position[0] + $ship->length - 1); $column++) { 
                     $this->set_tile([$column, $position[1]], $ship);
                 }
-                $this->render_board();
             }
 
             if ($ship->orientation == 'vertical') {
-                for ($row = $position[1]; $row <= ($position[0] + $ship->length - 1); $row++) { 
+                for ($row = $position[1]; $row <= ($position[1] + $ship->length - 1); $row++) { 
                     $this->set_tile([$position[0], $row], $ship);
                 }
-                $this->render_board();
             }
-        }
+            $this->ship_placed++;
+        } else return false;
     }
 }

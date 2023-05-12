@@ -14,51 +14,33 @@ class Game {
         ];
     }
 
-    function random_place($board) {
-        $orientation = rand(0, 1);
-        $orientations = ['vertical', 'horizonal'];
+    function random_position($board) {
         $x = rand(0, $board::COLUMNS -1);
         $y = rand(0, $board::ROWS -1);
         $position = [$x, $y];
 
-        return [$position, $orientations[$orientation]];
-    }
-
-    function toggle_orientation($ship) : void {
-        $orientations = ['vertical', 'horizontal'];
-        if ($ship->orientation == $orientations[0]) {$ship->orientation = $orientations[1];} else {
-            $ship->orientation = $orientations[0];
-        }
+        return $position;
     }
 
     function place_ships($board) {
         
-        $ships_to_place = count($this->ships) - 1;
-        $ship = 0;
-        $ships_placed = 0;
-        $random = $this->random_place($board);
-        $a_ship = $this->ships[$ship];
-        $a_ship->orientation = $random[1];
-        $ship_not_placed = true;
+        $ships_to_place = count($this->ships);
+        $position = $this->random_position($board);
         
-        do {
-
-            if ($board->is_position_valid($random[0], $a_ship)) {
-                $board->place_ship($random[0], $a_ship);
-                $ship++;
-                $ships_placed++;
-                $ship_not_placed = false;
-                
-            } else {
-                $ship_not_placed = true;
-                $this->toggle_orientation($a_ship);
-                $board->place_ship($random[0], $a_ship);
-                if (!$board->is_position_valid($random[0], $a_ship)) {
-                    $new_random = $this->random_place($board);
-                    $random = $new_random;
+        $ship = 0;
+        
+            do {
+                $a_ship = $this->ships[$board->ship_placed];
+                $valid = $board->is_position_valid($position, $a_ship);
+                if ($valid) {
+                    $board->place_ship($position, $a_ship);
+                    $ship++;
+                } else { 
+                    $new_position = $this->random_position($board);
+                    $position = $new_position;
                 }
-            }
-        } while($ship_not_placed && ($ships_placed !== $ships_to_place));
+
+            } while($ship!=5);
     }
 }
 
@@ -67,3 +49,5 @@ $board = new Board();
 
 
 $game->place_ships($board);
+
+$board->render_board();
